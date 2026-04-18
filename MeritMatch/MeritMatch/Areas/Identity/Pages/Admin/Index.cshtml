@@ -1,0 +1,230 @@
+﻿@page "/Admin/Index"
+@model MeritMatch.Areas.Identity.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Admin Panel";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4 text-primary"><i class="bi bi-shield-lock"></i> Admin Panel</h2>
+
+    <div class="row g-4">
+        <!-- Users Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Users & Supervisors</h5>
+                    <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="bi bi-plus-circle"></i> Add User
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Research Area</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in Model.Users)
+                                {
+                                    <tr>
+                                        <td>@user.Name</td>
+                                        <td>@user.Email</td>
+                                        <td>
+                                            <span class="badge bg-@(
+                                                user.Role == "Admin" ? "danger" :
+                                                user.Role == "Supervisor" ? "info" : "secondary"
+                                            )">@user.Role</span>
+                                        </td>
+                                        <td>@user.ResearchArea</td>
+                                        <td>
+                                            <form method="post" asp-page-handler="DeleteUser" asp-route-id="@user.Id" class="d-inline" onsubmit="return confirm('Are you sure?');">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-journal-text"></i> Projects</h5>
+                    <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+                        <i class="bi bi-plus-circle"></i> Add Project
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Student</th>
+                                    <th>Supervisor</th>
+                                    <th>Status</th>
+                                    <th>Research Area</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var project in Model.Projects)
+                                {
+                                    <tr>
+                                        <td>@project.Title</td>
+                                        <td>@project.Student?.Name</td>
+                                        <td>@project.Supervisor?.Name</td>
+                                        <td>
+                                            <span class="badge bg-@(
+                                                project.Status == ProjectStatus.Pending ? "warning" :
+                                                project.Status == ProjectStatus.Approved ? "success" :
+                                                project.Status == ProjectStatus.Rejected ? "danger" :
+                                                project.Status == ProjectStatus.UnderReview ? "info" :
+                                                project.Status == ProjectStatus.Matched ? "primary" : "secondary"
+                                            )">@project.Status</span>
+                                        </td>
+                                        <td>@project.ResearchArea?.Name</td>
+                                        <td>
+                                            <form method="post" asp-page-handler="DeleteProject" asp-route-id="@project.Id" class="d-inline" onsubmit="return confirm('Are you sure?');">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="AddUser">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUserModalLabel">Add User/Supervisor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label>Name</label>
+                        <input type="text" name="AddUserName" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                        <label>Email</label>
+                        <input type="email" name="AddUserEmail" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                        <label>Password</label>
+                        <input type="password" name="AddUserPassword" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                        <label>Role</label>
+                        <select name="AddUserRole" class="form-select" required>
+                            <option value="Student">Student</option>
+                            <option value="Supervisor">Supervisor</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>Research Area</label>
+                        <input type="text" name="AddUserResearchArea" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Project Modal -->
+<div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="AddProject">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProjectModalLabel">Add Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label>Title</label>
+                        <input type="text" name="AddProjectTitle" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                        <label>Student</label>
+                        <select name="AddProjectStudentId" class="form-select" required>
+                            <option value="">Select Student</option>
+                            @foreach (var student in Model.Students)
+                            {
+                                <option value="@student.Id">@student.Name (@student.Email)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>Supervisor</label>
+                        <select name="AddProjectSupervisorId" class="form-select">
+                            <option value="">Select Supervisor (optional)</option>
+                            @foreach (var supervisor in Model.Supervisors)
+                            {
+                                <option value="@supervisor.Id">@supervisor.Name (@supervisor.Email)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>Status</label>
+                        <select name="AddProjectStatus" class="form-select" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="UnderReview">UnderReview</option>
+                            <option value="Matched">Matched</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>Research Area</label>
+                        <select name="AddProjectResearchAreaId" class="form-select" required>
+                            <option value="">Select Research Area</option>
+                            @foreach (var area in Model.ResearchAreas)
+                            {
+                                <option value="@area.Id">@area.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>Tech Stack</label>
+                        <input type="text" name="AddProjectTechStack" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                        <label>Abstract</label>
+                        <textarea name="AddProjectAbstract" class="form-control" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.js"></script>
+}

@@ -88,6 +88,10 @@ namespace MeritMatch.Areas.Identity.Pages.Account
                     if (user != null)
                     {
                         var roles = await _userManager.GetRolesAsync(user);
+                        if (roles.Contains("Admin"))
+                        {
+                            return LocalRedirect("/Admin/Index");
+                        }
                         if (roles.Contains("Student"))
                         {
                             return LocalRedirect("/Student/Home");
