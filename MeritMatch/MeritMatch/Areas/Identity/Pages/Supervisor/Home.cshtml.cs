@@ -25,10 +25,17 @@ public class SupervisorHomeModel : PageModel
 
     public async Task OnGetAsync()
     {
+        var supervisor = await _userManager.GetUserAsync(User);
+
+        // Get the supervisor's research area (assuming it's a string property)
+        var supervisorResearchArea = supervisor.ResearchArea?.Trim().ToLower();
+
+        // Show all proposals in the same research area (assigned or not)
         Proposals = await _dbContext.Projects
             .Include(p => p.ResearchArea)
             .Include(p => p.Supervisor)
             .Include(p => p.Student)
+            .Where(p => p.ResearchArea.Name.ToLower() == supervisorResearchArea)
             .ToListAsync();
 
         // Keep revealed IDs in TempData if any
