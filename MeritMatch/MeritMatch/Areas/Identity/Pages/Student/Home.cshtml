@@ -54,7 +54,11 @@
                                 <span class="text-muted small"><i class="bi bi-tools"></i> <strong>Tech Stack:</strong> @proposal.TechStack</span>
                             </div>
                             <div class="mb-2">
-                                <span class="text-muted small"><i class="bi bi-person-badge"></i> <strong>Supervisor:</strong> @(proposal.Supervisor?.Name ?? "Not Assigned")</span>
+                                <span class="text-muted small">
+                                    <i class="bi bi-person-badge"></i>
+                                    <strong>Supervisor:</strong>
+                                    @(proposal.Supervisor != null ? proposal.Supervisor.Name : "Not Assigned")
+                                </span>
                             </div>
                         </div>
                         <div class="card-footer bg-white border-0 d-flex justify-content-end pt-0">

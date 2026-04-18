@@ -1,0 +1,173 @@
+﻿@page "/Supervisor/Home"
+@model SupervisorHomeModel
+@{
+    ViewData["Title"] = "Supervisor Dashboard";
+}
+
+@functions {
+    public string GetStatusColor(ProjectStatus status)
+    {
+        return status switch
+        {
+            ProjectStatus.Pending => "warning",
+            ProjectStatus.Approved => "success",
+            ProjectStatus.Rejected => "danger",
+            ProjectStatus.UnderReview => "info",
+            ProjectStatus.Matched => "primary",
+            _ => "secondary"
+        };
+    }
+
+    // Show only first 3 tech stack items, then "..."
+    public string GetShortTechStack(string techStack)
+    {
+        if (string.IsNullOrWhiteSpace(techStack)) return "";
+        var items = techStack.Split(',', System.StringSplitOptions.RemoveEmptyEntries)
+                             .Select(s => s.Trim()).ToList();
+        if (items.Count <= 3)
+            return string.Join(", ", items);
+        return string.Join(", ", items.Take(3)) + ", ...";
+    }
+
+    // Truncate abstract to about 120 chars, ending at a word boundary
+    public string GetShortAbstract(string abs)
+    {
+        if (string.IsNullOrWhiteSpace(abs)) return "";
+        if (abs.Length <= 120) return abs;
+        int lastSpace = abs.LastIndexOf(' ', 120);
+        if (lastSpace < 0) lastSpace = 120;
+        return abs.Substring(0, lastSpace) + "...";
+    }
+}
+
+<div class="container py-4">
+    <h2 class="mb-4">All Proposals</h2>
+    @if (Model.Proposals != null && Model.Proposals.Any())
+    {
+        <div class="row">
+            @foreach (var proposal in Model.Proposals)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow h-100 border-0">
+                        <div class="card-body pb-2">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="me-2" style="font-size:1.5rem; color:#6366f1;">
+                                    <i class="bi bi-journal-text"></i>
+                                </span>
+                                <h5 class="card-title mb-0 flex-grow-1">@proposal.Title</h5>
+                                <span class="badge bg-@GetStatusColor(proposal.Status) ms-2">@proposal.Status</span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="text-muted small"><i class="bi bi-diagram-3"></i> <strong>Research Area:</strong> @proposal.ResearchArea?.Name</span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="text-muted small">
+                                    <i class="bi bi-tools"></i>
+                                    <strong>Tech Stack:</strong> @GetShortTechStack(proposal.TechStack)
+                                </span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="text-muted small">
+                                    <i class="bi bi-person"></i>
+                                    <strong>Student:</strong>
+                                    @if (Model.RevealedStudentIds.Contains(proposal.Id))
+                                    {
+                                        <span>@proposal.Student?.Name (@proposal.Student?.Email)</span>
+                                    }
+                                    else
+                                    {
+                                        <span><em>Hidden</em></span>
+                                    }
+                                </span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="text-muted small"><i class="bi bi-person-badge"></i> <strong>Supervisor:</strong> @(proposal.Supervisor?.Name ?? "Not Assigned")</span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="text-muted small">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    <strong>Abstract:</strong> @GetShortAbstract(proposal.Abstract)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 d-flex justify-content-end pt-0">
+                            @if (proposal.Status == ProjectStatus.Pending)
+                            {
+                                <form method="post" asp-page-handler="Approve" asp-route-id="@proposal.Id" class="me-2">
+                                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                </form>
+                            }
+                            <button type="button"
+                                    class="btn btn-info btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#fullDetailModal"
+                                    data-title="@proposal.Title"
+                                    data-area="@proposal.ResearchArea?.Name"
+                                    data-techstack="@proposal.TechStack"
+                                    data-status="@proposal.Status"
+                                    data-student="@((Model.RevealedStudentIds.Contains(proposal.Id) ? proposal.Student?.Name + " (" + proposal.Student?.Email + ")" : "Hidden"))"
+                                    data-supervisor="@(proposal.Supervisor?.Name ?? "Not Assigned")"
+                                    data-abstract="@proposal.Abstract">
+                                Full Detail
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">No proposals found.</div>
+    }
+</div>
+
+<!-- Full Detail Modal -->
+<div class="modal fade" id="fullDetailModal" tabindex="-1" aria-labelledby="fullDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="fullDetailModalLabel">Proposal Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <dl class="row">
+                    <dt class="col-sm-4">Title</dt>
+                    <dd class="col-sm-8" id="detailTitle"></dd>
+                    <dt class="col-sm-4">Research Area</dt>
+                    <dd class="col-sm-8" id="detailArea"></dd>
+                    <dt class="col-sm-4">Tech Stack</dt>
+                    <dd class="col-sm-8" id="detailTechStack"></dd>
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8" id="detailStatus"></dd>
+                    <dt class="col-sm-4">Student</dt>
+                    <dd class="col-sm-8" id="detailStudent"></dd>
+                    <dt class="col-sm-4">Supervisor</dt>
+                    <dd class="col-sm-8" id="detailSupervisor"></dd>
+                    <dt class="col-sm-4">Abstract</dt>
+                    <dd class="col-sm-8" id="detailAbstract"></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var fullDetailModal = document.getElementById('fullDetailModal');
+            if (fullDetailModal) {
+                fullDetailModal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    document.getElementById('detailTitle').textContent = button.getAttribute('data-title');
+                    document.getElementById('detailArea').textContent = button.getAttribute('data-area');
+                    document.getElementById('detailTechStack').textContent = button.getAttribute('data-techstack');
+                    document.getElementById('detailStatus').textContent = button.getAttribute('data-status');
+                    document.getElementById('detailStudent').textContent = button.getAttribute('data-student');
+                    document.getElementById('detailSupervisor').textContent = button.getAttribute('data-supervisor');
+                    document.getElementById('detailAbstract').textContent = button.getAttribute('data-abstract');
+                });
+            }
+        });
+    </script>
+}

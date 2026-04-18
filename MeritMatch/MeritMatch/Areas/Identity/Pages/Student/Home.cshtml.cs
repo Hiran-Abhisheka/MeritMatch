@@ -47,7 +47,7 @@ public class HomeModel : PageModel
         var user = await _userManager.GetUserAsync(User);
         Proposals = await _dbContext.Projects
             .Include(p => p.ResearchArea)
-            .Include(p => p.Supervisor)
+            .Include(p => p.Supervisor) // This ensures Supervisor is loaded
             .Where(p => p.StudentId == user.Id)
             .ToListAsync();
     }
@@ -122,4 +122,3 @@ public class HomeModel : PageModel
         return RedirectToPage();
     }
 }
-

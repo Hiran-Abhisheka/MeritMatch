@@ -92,6 +92,10 @@ namespace MeritMatch.Areas.Identity.Pages.Account
                         {
                             return LocalRedirect("/Student/Home");
                         }
+                        if (roles.Contains("Supervisor"))
+                        {
+                            return LocalRedirect("/Supervisor/Home");
+                        }
                         // Add more role-based redirects here if needed
                     }
 
