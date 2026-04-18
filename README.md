@@ -1,7 +1,7 @@
 # MeritMatch
 
 <p align="center">
-   <img src="https://i.postimg.cc/13wFSSmW/Screenshot-2026-04-18-203822.png" alt="Nexus Site Preview" width="800" />
+   <img src="https://i.postimg.cc/13wFSSmW/Screenshot-2026-04-18-203822.png" alt="MeritMatch site" width="800" />
 </p>
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-blueviolet)
